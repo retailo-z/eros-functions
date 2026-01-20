@@ -1,0 +1,45 @@
+{
+  "payload": {
+    "export": "run",
+    "target": "purchase.product-discount.run",
+    "input": {
+      "cart": {
+        "lines": [
+          {
+            "id": "gid://shopify/CartLine/1",
+            "quantity": 1,
+            "freeGiftAttribute": null
+          },
+          {
+            "id": "gid://shopify/CartLine/2",
+            "quantity": 1,
+            "freeGiftAttribute": {
+              "value": "true"
+            }
+          }
+        ]
+      }
+    },
+    "output": {
+      "discountApplicationStrategy": "ALL",
+      "discounts": [
+        {
+          "message": "Cadeau gratuit",
+          "targets": [
+            {
+              "cartLine": {
+                "id": "gid://shopify/CartLine/2",
+                "quantity": 1
+              }
+            }
+          ],
+          "value": {
+            "percentage": {
+              "value": "100"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
