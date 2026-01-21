@@ -1,4 +1,4 @@
-api_version = "2025-01"
+api_version = "2025-04"
 
 [[extensions]]
 name = "t:name"
@@ -15,7 +15,3 @@ description = "t:description"
   [extensions.build]
   command = ""
   path = "dist/function.wasm"
-
-  [extensions.ui.paths]
-  create = "/"
-  details = "/"
