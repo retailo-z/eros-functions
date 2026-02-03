@@ -13,12 +13,14 @@ const EMPTY_DISCOUNT: FunctionRunResult = {
 };
 
 const FREE_GIFT_MESSAGE = "Cadeau gratuit";
+const MAX_FREE_GIFTS = 3;
 
 export function run(input: RunInput): FunctionRunResult {
   // Find all cart lines that have the _free_gift attribute set to "true"
-  const freeGiftLines = input.cart.lines.filter((line) => {
-    return line.freeGiftAttribute?.value === "true";
-  });
+  // Limit to MAX_FREE_GIFTS items
+  const freeGiftLines = input.cart.lines
+    .filter((line) => line.freeGiftAttribute?.value === "true")
+    .slice(0, MAX_FREE_GIFTS);
 
   // If no free gift lines found, return empty discount
   if (freeGiftLines.length === 0) {
