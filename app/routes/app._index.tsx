@@ -1,11 +1,12 @@
 import type {
+  ActionFunctionArgs,
   HeadersFunction,
   LoaderFunctionArgs,
 } from "react-router";
-import { useLoaderData } from "react-router";
+import { useLoaderData, useFetcher } from "react-router";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
-import { ensureFreeGiftDiscountExists } from "../free-gift-discount.server";
+import { ensureFreeGiftDiscountExists, toggleFreeGiftDiscount } from "../free-gift-discount.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
@@ -16,8 +17,37 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return { discountResult };
 };
 
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const { admin } = await authenticate.admin(request);
+  const formData = await request.formData();
+  const action = formData.get("action");
+
+  if (action === "toggle") {
+    const enable = formData.get("enable") === "true";
+    const result = await toggleFreeGiftDiscount(admin, enable);
+    return { toggleResult: result };
+  }
+
+  return { error: "Unknown action" };
+};
+
 export default function Index() {
   const { discountResult } = useLoaderData<typeof loader>();
+  const fetcher = useFetcher<typeof action>();
+
+  const isToggling = fetcher.state !== "idle";
+  
+  // Use the fetcher result if available, otherwise use loader result
+  const isActive = fetcher.data?.toggleResult?.success 
+    ? fetcher.data.toggleResult.isActive 
+    : discountResult?.isActive ?? false;
+
+  const handleToggle = () => {
+    fetcher.submit(
+      { action: "toggle", enable: (!isActive).toString() },
+      { method: "POST" }
+    );
+  };
 
   return (
     <s-page heading="Free Gift Discount">
@@ -30,13 +60,26 @@ export default function Index() {
             background="subdued"
           >
             <s-stack direction="block" gap="base">
-              <s-badge tone="success">Active</s-badge>
+              <s-inline align="space-between" blockAlign="center">
+                <s-inline gap="base" blockAlign="center">
+                  <s-badge tone={isActive ? "success" : "neutral"}>
+                    {isActive ? "Active" : "Inactive"}
+                  </s-badge>
+                  <s-text fontWeight="bold">Free Gift Discount</s-text>
+                </s-inline>
+                <s-button
+                  onClick={handleToggle}
+                  disabled={isToggling}
+                  variant={isActive ? "secondary" : "primary"}
+                >
+                  {isToggling ? "Updating..." : isActive ? "Turn Off" : "Turn On"}
+                </s-button>
+              </s-inline>
               <s-paragraph>
-                <s-text fontWeight="bold">Free Gift discount is active!</s-text>
-              </s-paragraph>
-              <s-paragraph>
-                Any cart item with the property <s-text fontWeight="bold">_free_gift: "true"</s-text> will 
-                automatically be discounted to $0 with the message "Cadeau gratuit".
+                {isActive 
+                  ? "Any cart item with the property _free_gift: \"true\" will automatically be discounted to $0 with the message \"Cadeau gratuit\"."
+                  : "The discount is currently disabled. Turn it on to start discounting free gift items."
+                }
               </s-paragraph>
               {discountResult.created && (
                 <s-paragraph>

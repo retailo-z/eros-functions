@@ -4,6 +4,106 @@ const DISCOUNT_TITLE = "Free Gift";
 const FREE_GIFT_FUNCTION_HANDLE = "free-gift-discount";
 
 /**
+ * Gets the current status of the Free Gift discount
+ */
+export async function getFreeGiftDiscountStatus(admin: AdminApiContext) {
+  try {
+    const existingDiscount = await findExistingDiscount(admin);
+    
+    if (existingDiscount) {
+      return {
+        exists: true,
+        discountId: existingDiscount.id,
+        isActive: existingDiscount.discount?.status === "ACTIVE",
+        status: existingDiscount.discount?.status,
+      };
+    }
+    
+    return { exists: false, isActive: false };
+  } catch (error) {
+    console.error("Error getting discount status:", error);
+    return { exists: false, isActive: false, error: String(error) };
+  }
+}
+
+/**
+ * Toggles the Free Gift discount on/off
+ */
+export async function toggleFreeGiftDiscount(admin: AdminApiContext, enable: boolean) {
+  try {
+    const existingDiscount = await findExistingDiscount(admin);
+    
+    if (!existingDiscount) {
+      return { success: false, error: "Discount not found" };
+    }
+
+    const response = await admin.graphql(`
+      mutation UpdateDiscountStatus($id: ID!) {
+        discountAutomaticActivate(id: $id) @include(if: ${enable})
+        discountAutomaticDeactivate(id: $id) @skip(if: ${enable})
+      }
+    `, {
+      variables: { id: existingDiscount.id }
+    });
+
+    // Use the correct mutation based on enable flag
+    const mutation = enable ? `
+      mutation ActivateDiscount($id: ID!) {
+        discountAutomaticActivate(id: $id) {
+          automaticDiscountNode {
+            id
+            automaticDiscount {
+              ... on DiscountAutomaticApp {
+                status
+              }
+            }
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    ` : `
+      mutation DeactivateDiscount($id: ID!) {
+        discountAutomaticDeactivate(id: $id) {
+          automaticDiscountNode {
+            id
+            automaticDiscount {
+              ... on DiscountAutomaticApp {
+                status
+              }
+            }
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    `;
+
+    const toggleResponse = await admin.graphql(mutation, {
+      variables: { id: existingDiscount.id }
+    });
+
+    const data = await toggleResponse.json();
+    const result = enable 
+      ? data.data?.discountAutomaticActivate 
+      : data.data?.discountAutomaticDeactivate;
+
+    if (result?.userErrors?.length > 0) {
+      return { success: false, error: result.userErrors[0].message };
+    }
+
+    return { success: true, isActive: enable };
+  } catch (error) {
+    console.error("Error toggling discount:", error);
+    return { success: false, error: String(error) };
+  }
+}
+
+/**
  * Ensures the Free Gift discount is created and active.
  * This runs automatically when the app is loaded.
  */
@@ -14,7 +114,12 @@ export async function ensureFreeGiftDiscountExists(admin: AdminApiContext) {
     
     if (existingDiscount) {
       console.log(`Free Gift discount already exists: ${existingDiscount.id}`);
-      return { success: true, discountId: existingDiscount.id, created: false };
+      return { 
+        success: true, 
+        discountId: existingDiscount.id, 
+        created: false,
+        isActive: existingDiscount.discount?.status === "ACTIVE",
+      };
     }
 
     // Step 2: Find the function ID
@@ -33,10 +138,10 @@ export async function ensureFreeGiftDiscountExists(admin: AdminApiContext) {
       return { success: true, discountId: discount.discountId, created: true };
     }
 
-    return { success: false, error: "Failed to create discount" };
+    return { success: false, error: "Failed to create discount", isActive: false };
   } catch (error) {
     console.error("Error ensuring Free Gift discount exists:", error);
-    return { success: false, error: String(error) };
+    return { success: false, error: String(error), isActive: false };
   }
 }
 
