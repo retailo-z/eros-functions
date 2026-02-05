@@ -12,11 +12,29 @@
 
 ---
 
-## 📋 Phase 2 - Configuration UI
+## ✅ Phase 1.5 - Checkout UI Extension - Complete
+
+- [x] Create Checkout UI Extension for gift selection
+- [x] Fetch products from configurable collection
+- [x] Display scrollable gift selector (max 250px height)
+- [x] Add gift to cart with `_free_gift: "true"` attribute
+- [x] Remove gift from cart
+- [x] Show counter (X/Y selected)
+- [x] Threshold check (show message if cart < threshold)
+- [x] Max gifts limit (disable buttons when reached)
+- [x] Multilanguage support (EN + FR)
+- [x] Configurable settings via Checkout Editor:
+  - Gift collection handle
+  - Cart threshold amount
+  - Maximum free gifts
+
+---
+
+## 📋 Phase 2 - Configuration UI & Hosting
 
 See [PHASE2.md](./PHASE2.md) for detailed implementation plan.
 
-- [ ] Host app on Fly.io
+- [ ] Host app on Fly.io or Vercel
 - [ ] Add spending threshold setting (min cart subtotal)
 - [ ] Add configurable max free gifts
 - [ ] Add customizable discount message
@@ -49,32 +67,11 @@ Cart Transform adds "Gift Product" with _free_gift: "true"
 Product Discount Function makes it $0
 ```
 
-### App Settings UI
-```
-┌─────────────────────────────────────────────────┐
-│  Auto-Add Free Gift                             │
-├─────────────────────────────────────────────────┤
-│  ☑️  Enable automatic gift adding               │
-│                                                 │
-│  Gift Product: [Select product ▼]              │
-│                                                 │
-│  Minimum Cart Total: [$___100.00___]           │
-│                                                 │
-│  ℹ️  When enabled, the selected product will   │
-│     be automatically added to carts that meet  │
-│     the minimum total. Customers won't need    │
-│     to manually add the gift.                  │
-│                                                 │
-│  ⚠️  When disabled, use your theme to add      │
-│     items with _free_gift: "true" property.    │
-└─────────────────────────────────────────────────┘
-```
-
 ### Two Modes
 
 | Mode | How Gifts Are Added | Use Case |
 |------|---------------------|----------|
-| **Manual** (default) | Theme adds `_free_gift` property | Customer chooses gift |
+| **Manual** (default) | Checkout UI / Theme adds `_free_gift` property | Customer chooses gift |
 | **Auto** (optional) | Cart Transform adds automatically | Merchant controls gift |
 
 ### Technical Requirements
@@ -86,41 +83,12 @@ Product Discount Function makes it $0
 - [ ] **Read enabled/disabled setting from metafield**
 - [ ] **Store selected gift product in metafield**
 
-### Files to Create
-```
-extensions/
-└── cart-transform-free-gift/
-    ├── shopify.extension.toml
-    └── src/
-        ├── run.graphql
-        └── run.ts
-```
-
-### Database Schema Addition
-```prisma
-model FreeGiftSettings {
-  // ... existing fields ...
-  
-  // Cart Transform settings
-  autoAddEnabled    Boolean  @default(false)
-  autoAddProductId  String?  // Gift product GID
-  autoAddVariantId  String?  // Gift variant GID
-}
-```
-
-### Considerations
-- **Default is OFF** - theme-based approach works out of the box
-- Customer cannot choose gift when auto-add is ON
-- Need to store gift variant ID in metafields
-- Handle edge cases (gift out of stock, etc.)
-- Clear messaging about which mode is active
-
 ---
 
-## 🎨 Phase 4 - Theme App Extension (Gift Slider UI)
+## 🎨 Phase 4 - Theme App Extension (Cart Drawer Slider)
 
 ### Overview
-Add a Theme App Extension that displays a gift collection slider in the cart drawer when the cart meets the spending threshold. Customers can browse and select their free gift directly from the cart.
+Add a Theme App Extension that displays a gift collection slider in the cart drawer. This is an alternative to the Checkout UI Extension for stores that prefer gift selection in the cart.
 
 ### Features
 - [ ] Gift collection slider appears when cart ≥ threshold
@@ -130,149 +98,29 @@ Add a Theme App Extension that displays a gift collection slider in the cart dra
 - [ ] Responsive design (mobile + desktop)
 - [ ] Customizable via Theme Editor
 
-### How It Works
-```
-Cart subtotal >= $100
-    ↓
-Theme App Extension shows gift slider in cart drawer
-    ↓
-Customer clicks "Add as Gift" on product
-    ↓
-JS adds product with _free_gift: "true" property
-    ↓
-Product Discount Function makes it $0
-```
-
 ### Files to Create
 ```
 extensions/
 └── free-gift-slider/
     ├── shopify.extension.toml
     ├── blocks/
-    │   └── gift-slider.liquid      # App Block for cart
+    │   └── gift-slider.liquid
     ├── assets/
-    │   ├── gift-slider.js          # Slider logic
-    │   └── gift-slider.css         # Styling
+    │   ├── gift-slider.js
+    │   └── gift-slider.css
     └── locales/
         ├── en.default.json
         └── fr.json
 ```
 
-### App Block Code Preview (gift-slider.liquid)
-```liquid
-{% if cart.total_price >= block.settings.threshold %}
-  <div class="free-gift-slider" data-max-gifts="{{ block.settings.max_gifts }}">
-    <h3>{{ block.settings.heading }}</h3>
-    <div class="gift-slider__products">
-      {% for product in collections[block.settings.collection].products limit: 10 %}
-        <div class="gift-slider__product">
-          <img src="{{ product.featured_image | img_url: '200x200' }}" alt="{{ product.title }}">
-          <p>{{ product.title }}</p>
-          <button 
-            class="gift-slider__add-btn"
-            data-variant-id="{{ product.selected_or_first_available_variant.id }}"
-          >
-            {{ block.settings.button_text }}
-          </button>
-        </div>
-      {% endfor %}
-    </div>
-  </div>
-{% endif %}
-
-{% schema %}
-{
-  "name": "Free Gift Slider",
-  "target": "section",
-  "settings": [
-    {
-      "type": "text",
-      "id": "heading",
-      "label": "Heading",
-      "default": "Choose your free gift!"
-    },
-    {
-      "type": "collection",
-      "id": "collection",
-      "label": "Gift Collection"
-    },
-    {
-      "type": "range",
-      "id": "threshold",
-      "label": "Minimum Cart Total (cents)",
-      "min": 0,
-      "max": 50000,
-      "step": 100,
-      "default": 10000
-    },
-    {
-      "type": "range",
-      "id": "max_gifts",
-      "label": "Maximum Free Gifts",
-      "min": 1,
-      "max": 5,
-      "default": 3
-    },
-    {
-      "type": "text",
-      "id": "button_text",
-      "label": "Button Text",
-      "default": "Add as Gift"
-    }
-  ]
-}
-{% endschema %}
-```
-
-### JavaScript (gift-slider.js)
-```javascript
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.gift-slider__add-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const variantId = e.target.dataset.variantId;
-      
-      await fetch('/cart/add.js', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: variantId,
-          quantity: 1,
-          properties: {
-            '_free_gift': 'true'
-          }
-        })
-      });
-      
-      // Refresh cart drawer
-      window.location.reload();
-    });
-  });
-});
-```
-
-### App Settings Integration
-- [ ] Store selected collection in app metafields
-- [ ] Sync threshold with discount function settings
-- [ ] Sync max gifts with discount function settings
-
-### Theme Editor Settings
-Merchants can customize via Shopify Theme Editor:
-- Heading text
-- Gift collection
-- Minimum cart threshold
-- Max gifts allowed
-- Button text
-- Colors/styling
-
-### Considerations
-- Must work with various themes (Dawn, custom, etc.)
-- Need fallback if cart drawer doesn't support App Blocks
-- Consider lazy loading for performance
-- Handle out-of-stock products gracefully
-
 ---
 
 ## 💡 Future Ideas (Phase 5+)
+
+### Discount Conflict Handling
+- [ ] Check if cart has discount code ≥ 40%
+- [ ] Block gift selection if discount conflict
+- [ ] Checkout validation to prevent conflicting discounts
 
 ### Tiered Thresholds
 - [ ] Spend $100 → 1 free gift
@@ -284,19 +132,10 @@ Merchants can customize via Shopify Theme Editor:
 - [ ] Tag-based gift eligibility
 - [ ] Collection-based gift eligibility
 
-### Time-Based Promotions
-- [ ] Free gifts only during sale periods
-- [ ] Holiday-specific gifts
-- [ ] Flash sale gifts
-
 ### Analytics
 - [ ] Track number of free gifts given
 - [ ] Calculate total gift value
 - [ ] Conversion impact analysis
-
-### Multi-Language
-- [ ] Translatable discount message
-- [ ] Locale-based message selection
 
 ---
 
@@ -306,19 +145,30 @@ Merchants can customize via Shopify Theme Editor:
 
 ---
 
-## 📝 Notes
+## 📝 Current Architecture
 
-### Current Limitations
-1. Theme must add `_free_gift: "true"` property (Phase 3 will automate this)
-2. App UI requires local server or hosting (Phase 2 will add hosting)
-3. Settings are hardcoded (Phase 2 will make configurable)
-
-### Testing Checklist
-- [ ] Test with 1 free gift
-- [ ] Test with 3 free gifts (max)
-- [ ] Test with 4+ free gifts (should only discount 3)
-- [ ] Test without free gifts
-- [ ] Test discount toggle on/off
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         SHOPIFY STORE                           │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────────────┐    ┌─────────────────────────────┐    │
+│  │   CHECKOUT PAGE     │    │   PRODUCT DISCOUNT FUNCTION │    │
+│  │                     │    │                             │    │
+│  │  ┌───────────────┐  │    │  • Detects _free_gift attr  │    │
+│  │  │ Gift Selector │  │───▶│  • Applies 100% discount    │    │
+│  │  │ UI Extension  │  │    │  • Limits to 3 gifts max    │    │
+│  │  │               │  │    │  • Shows "Cadeau gratuit"   │    │
+│  │  │ • Collection  │  │    │                             │    │
+│  │  │ • Add/Remove  │  │    └─────────────────────────────┘    │
+│  │  │ • Counter     │  │                                       │
+│  │  │ • i18n        │  │                                       │
+│  │  └───────────────┘  │                                       │
+│  │                     │                                       │
+│  └─────────────────────┘                                       │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -330,3 +180,13 @@ Merchants can customize via Shopify Theme Editor:
 | [PHASE2.md](./PHASE2.md) | Phase 2 detailed plan |
 | [TODO.md](./TODO.md) | This file - roadmap & todos |
 | [README.md](./README.md) | Project overview |
+
+---
+
+## 🔧 Extension Settings (Checkout Editor)
+
+| Setting | Key | Type | Default |
+|---------|-----|------|---------|
+| Gift Collection Handle | `gift_collection_handle` | text | `free-gifts` |
+| Cart Threshold | `threshold_amount` | number | `0` |
+| Maximum Free Gifts | `max_gifts` | integer | `3` |

@@ -1,0 +1,14 @@
+{
+  "name": "checkout-gift-selector",
+  "version": "0.0.1",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "shopify app build --include-config-on-deploy"
+  },
+  "dependencies": {
+    "@preact/signals": "^2.7.0",
+    "@shopify/ui-extensions": "^2025.11.0",
+    "preact": "^10.10.0"
+  }
+}

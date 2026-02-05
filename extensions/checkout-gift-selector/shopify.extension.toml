@@ -1,0 +1,33 @@
+api_version = "2025-10"
+
+[[extensions]]
+name = "Cadeau Gratuit"
+handle = "checkout-gift-selector"
+uid = "0c452a0f-2892-d16a-5713-f659d8e0687db2c18809"
+type = "ui_extension"
+
+[[extensions.targeting]]
+target = "purchase.checkout.block.render"
+module = "./src/Checkout.jsx"
+
+[extensions.capabilities]
+api_access = true
+
+[extensions.settings]
+[[extensions.settings.fields]]
+key = "gift_collection_handle"
+type = "single_line_text_field"
+name = "Gift Collection Handle"
+description = "The handle of the collection containing gift products"
+
+[[extensions.settings.fields]]
+key = "threshold_amount"
+type = "number_decimal"
+name = "Cart Threshold"
+description = "Minimum cart total to unlock free gift"
+
+[[extensions.settings.fields]]
+key = "max_gifts"
+type = "number_integer"
+name = "Maximum Free Gifts"
+description = "Maximum number of free gifts allowed"

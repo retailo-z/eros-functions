@@ -1,0 +1,13 @@
+{
+  "title": "🎁 Choisissez votre cadeau gratuit !",
+  "subtitle": "Sélectionnez un article ci-dessous ({{count}}/{{max}} sélectionnés)",
+  "selectButton": "Sélectionner",
+  "removeButton": "Retirer",
+  "inCart": "✓ Dans le panier",
+  "free": "Gratuit",
+  "loading": "Chargement des cadeaux...",
+  "error": "Erreur: {{message}}",
+  "noGifts": "🎁 Aucun cadeau disponible",
+  "thresholdNotMet": "🎁 Ajoutez {{amount}}$ de plus pour débloquer votre cadeau gratuit !",
+  "maxGiftsReached": "🎁 Nombre maximum de cadeaux gratuits atteint ({{max}})"
+}
