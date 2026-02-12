@@ -1,7 +1,7 @@
 // Checkout Gift Selector - Tiered Threshold System with Discount Exclusion
 import '@shopify/ui-extensions/preact';
 import { render, h } from 'preact';
-import { useState, useEffect, useRef } from 'preact/hooks';
+import { useState, useEffect } from 'preact/hooks';
 
 const FREE_GIFT_KEY = "_free_gift";
 
@@ -29,7 +29,6 @@ function Extension() {
   const [actionId, setActionId] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRemovingGifts, setIsRemovingGifts] = useState(false);
-  const hasAutoRemovedRef = useRef(false);
   
   // Get settings from shopify.settings.current (subscribable)
   const settings = shopify.settings?.current || {};
@@ -147,39 +146,51 @@ function Extension() {
   const canAddGift = existingGiftCount < allowedGifts && !hasLargeDiscount;
   const hasReachedMaxTier = allowedGifts >= maxGifts;
   
-  // Auto-remove free gifts when large discount is applied
+  // Auto-remove excess free gifts when cart no longer qualifies:
+  // - Products removed from cart → total drops below threshold
+  // - Cart drops to a lower tier → fewer gifts allowed than currently in cart
+  // - Large discount code applied → allowedGifts becomes 0
   useEffect(() => {
-    async function removeGiftsForLargeDiscount() {
-      // Only run if there's a large discount AND there are free gifts to remove
-      // AND we haven't already triggered the auto-remove for this state
-      if (hasLargeDiscount && freeGiftLines.length > 0 && !isRemovingGifts && !hasAutoRemovedRef.current) {
-        hasAutoRemovedRef.current = true;
+    async function removeExcessGifts() {
+      if (existingGiftCount > allowedGifts && freeGiftLines.length > 0 && !isRemovingGifts) {
         setIsRemovingGifts(true);
         
         try {
-          // Remove all free gift lines
+          let giftsToKeep = allowedGifts;
+          
           for (const giftLine of freeGiftLines) {
-            await shopify.applyCartLinesChange({
-              type: "removeCartLine",
-              id: giftLine.id,
-              quantity: giftLine.quantity || 1
-            });
+            const lineQty = giftLine.quantity || 1;
+            
+            if (giftsToKeep <= 0) {
+              // Remove entire gift line
+              await shopify.applyCartLinesChange({
+                type: "removeCartLine",
+                id: giftLine.id,
+                quantity: lineQty
+              });
+            } else if (giftsToKeep < lineQty) {
+              // Partially reduce this gift line
+              await shopify.applyCartLinesChange({
+                type: "updateCartLine",
+                id: giftLine.id,
+                quantity: giftsToKeep
+              });
+              giftsToKeep = 0;
+            } else {
+              // Keep this gift line as is
+              giftsToKeep -= lineQty;
+            }
           }
         } catch (err) {
-          // Silent fail - gifts will still be in cart but won't be free
+          // Silent fail
         } finally {
           setIsRemovingGifts(false);
         }
       }
-      
-      // Reset the flag when there's no large discount
-      if (!hasLargeDiscount) {
-        hasAutoRemovedRef.current = false;
-      }
     }
     
-    removeGiftsForLargeDiscount();
-  }, [hasLargeDiscount, freeGiftLines.length]);
+    removeExcessGifts();
+  }, [existingGiftCount, allowedGifts]);
 
   useEffect(() => {
     fetchGiftProducts();
