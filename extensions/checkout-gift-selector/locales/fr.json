@@ -8,6 +8,8 @@
   "loading": "Chargement des cadeaux...",
   "error": "Erreur: {{message}}",
   "noGifts": "🎁 Aucun cadeau disponible",
-  "thresholdNotMet": "🎁 Ajoutez {{amount}}$ de plus pour débloquer votre cadeau gratuit !",
-  "maxGiftsReached": "🎁 Nombre maximum de cadeaux gratuits atteint ({{max}})"
+  "unlockFirst": "🎁 Ajoutez {{amount}}$ de plus pour débloquer votre cadeau gratuit !",
+  "unlockNext": "🎁 Ajoutez {{amount}}$ de plus pour débloquer un autre cadeau !",
+  "discountExclusion": "Les cadeaux gratuits ne sont pas disponibles avec des réductions de {{threshold}}% ou plus.",
+  "removingGifts": "Mise à jour du panier..."
 }

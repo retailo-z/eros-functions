@@ -8,6 +8,8 @@
   "loading": "Loading gifts...",
   "error": "Error: {{message}}",
   "noGifts": "🎁 No gifts available",
-  "thresholdNotMet": "🎁 Add {{amount}} more to unlock your free gift!",
-  "maxGiftsReached": "🎁 Maximum number of free gifts reached ({{max}})"
+  "unlockFirst": "🎁 Add ${{amount}} more to unlock your free gift!",
+  "unlockNext": "🎁 Add ${{amount}} more to unlock another gift!",
+  "discountExclusion": "Free gifts are not available with discounts of {{threshold}}% or more.",
+  "removingGifts": "Updating cart..."
 }

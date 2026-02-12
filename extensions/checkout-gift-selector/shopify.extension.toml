@@ -21,13 +21,25 @@ name = "Gift Collection Handle"
 description = "The handle of the collection containing gift products"
 
 [[extensions.settings.fields]]
-key = "threshold_amount"
+key = "first_gift_threshold"
 type = "number_decimal"
-name = "Cart Threshold"
-description = "Minimum cart total to unlock free gift"
+name = "First Gift Threshold"
+description = "Minimum cart total to unlock the first free gift (e.g. 75)"
+
+[[extensions.settings.fields]]
+key = "threshold_increment"
+type = "number_decimal"
+name = "Threshold Increment"
+description = "Additional amount needed for each extra gift (e.g. 25 means: $75=1 gift, $100=2 gifts, $125=3 gifts)"
 
 [[extensions.settings.fields]]
 key = "max_gifts"
 type = "number_integer"
 name = "Maximum Free Gifts"
 description = "Maximum number of free gifts allowed"
+
+[[extensions.settings.fields]]
+key = "discount_exclusion_threshold"
+type = "number_decimal"
+name = "Discount Exclusion Threshold (%)"
+description = "If applied discount is >= this percentage, free gifts are NOT available (default: 40)"
