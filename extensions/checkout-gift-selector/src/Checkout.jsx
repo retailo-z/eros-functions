@@ -110,12 +110,17 @@ function Extension() {
   // Count total gift quantity
   const existingGiftCount = freeGiftLines.reduce((total, line) => total + (line.quantity || 1), 0);
   
-  // Map of variant IDs in cart as free gifts -> cart line ID
+  // Map of variant IDs AND product IDs in cart as free gifts -> cart line ID
   const giftVariantsInCart = {};
+  const giftProductsInCart = {};
   freeGiftLines.forEach(line => {
     const variantId = line.merchandise?.id;
+    const productId = line.merchandise?.product?.id;
     if (variantId) {
       giftVariantsInCart[variantId] = line.id;
+    }
+    if (productId) {
+      giftProductsInCart[productId] = line.id;
     }
   });
   
@@ -272,7 +277,7 @@ function Extension() {
     if (isProcessing) return;
     
     const variantId = product.variants?.nodes?.[0]?.id;
-    const cartLineId = giftVariantsInCart[variantId];
+    const cartLineId = giftVariantsInCart[variantId] || giftProductsInCart[product.id];
     
     if (!cartLineId) return;
     
@@ -364,7 +369,7 @@ function Extension() {
         h('s-stack', { direction: 'block', gap: 'base' },
           ...products.map(product => {
             const variantId = product.variants?.nodes?.[0]?.id;
-            const isInCart = variantId && giftVariantsInCart[variantId];
+            const isInCart = (variantId && giftVariantsInCart[variantId]) || giftProductsInCart[product.id];
             const isCurrentAction = actionId === product.id;
             
             return h('s-stack', { 
