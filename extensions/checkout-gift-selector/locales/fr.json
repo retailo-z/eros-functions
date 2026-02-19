@@ -1,15 +1,3 @@
 {
-  "title": "🎁 Choisissez votre cadeau gratuit !",
-  "subtitle": "Sélectionnez un article ci-dessous ({{count}}/{{max}} sélectionnés)",
-  "selectButton": "Sélectionner",
-  "removeButton": "Retirer",
-  "inCart": "✓ Dans le panier",
-  "free": "Gratuit",
-  "loading": "Chargement des cadeaux...",
-  "error": "Erreur: {{message}}",
-  "noGifts": "🎁 Aucun cadeau disponible",
-  "unlockFirst": "🎁 Ajoutez {{amount}}$ de plus pour débloquer votre cadeau gratuit !",
-  "unlockNext": "🎁 Ajoutez {{amount}}$ de plus pour débloquer un autre cadeau !",
-  "discountExclusion": "Les cadeaux gratuits ne sont pas disponibles avec des réductions de {{threshold}}% ou plus.",
   "removingGifts": "Mise à jour du panier..."
 }

@@ -1,15 +1,3 @@
 {
-  "title": "🎁 Choose your free gift!",
-  "subtitle": "Select an item below ({{count}}/{{max}} selected)",
-  "selectButton": "Select",
-  "removeButton": "Remove",
-  "inCart": "✓ In cart",
-  "free": "Free",
-  "loading": "Loading gifts...",
-  "error": "Error: {{message}}",
-  "noGifts": "🎁 No gifts available",
-  "unlockFirst": "🎁 Add ${{amount}} more to unlock your free gift!",
-  "unlockNext": "🎁 Add ${{amount}} more to unlock another gift!",
-  "discountExclusion": "Free gifts are not available with discounts of {{threshold}}% or more.",
   "removingGifts": "Updating cart..."
 }

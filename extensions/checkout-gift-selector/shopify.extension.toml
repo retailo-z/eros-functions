@@ -15,12 +15,6 @@ api_access = true
 
 [extensions.settings]
 [[extensions.settings.fields]]
-key = "gift_collection_handle"
-type = "single_line_text_field"
-name = "Gift Collection Handle"
-description = "The handle of the collection containing gift products"
-
-[[extensions.settings.fields]]
 key = "first_gift_threshold"
 type = "number_decimal"
 name = "First Gift Threshold"
